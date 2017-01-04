@@ -85,17 +85,20 @@
           scope.itemScope = itemController.scope;
           element.data('_scope', scope); // #144, work with angular debugInfoEnabled(false)
 
-          scope.$watchGroup(['sortableScope.isDisabled', 'sortableScope.options.longTouch'],
-              function (newValues) {
-            if (isDisabled !== newValues[0]) {
-              isDisabled = newValues[0];
+          scope.$watch('sortableScope.isDisabled', function (newVal) {
+            if (isDisabled !== newVal) {
+              isDisabled = newVal;
               if (isDisabled) {
                 unbindDrag();
               } else {
                 bindDrag();
               }
-            } else if (isLongTouch !== newValues[1]) {
-              isLongTouch = newValues[1];
+            }
+          });
+
+          scope.$watch('sortableScope.options.longTouch', function (newVal) {
+            if (isLongTouch !== newVal && !isDisabled) {
+              isLongTouch = newVal;
               unbindDrag();
               bindDrag();
             } else {
@@ -125,7 +128,7 @@
            * @param event - the event object.
            */
           dragListen = function (event) {
-
+            event.preventDefault();
             var unbindMoveListen = function () {
               angular.element($document).unbind('mousemove', moveListen);
               angular.element($document).unbind('touchmove', moveListen);
@@ -204,7 +207,7 @@
             // container positioning
             containerPositioning = scope.sortableScope.options.containerPositioning || 'absolute';
 
-            dragItemInfo = $helper.dragItem(scope.itemScope);
+            dragItemInfo = $helper.dragItem(scope);
             tagName = scope.itemScope.element.prop('tagName');
 
             dragElement = angular.element($document[0].createElement(scope.sortableScope.element.prop('tagName')))
@@ -344,8 +347,8 @@
               targetY = eventObj.pageY - ($window.pageYOffset || $document[0].documentElement.scrollTop);
 
               //IE fixes: hide show element, call element from point twice to return pick correct element.
-              dragElement.addClass(sortableConfig.hiddenClass);
               targetElement = angular.element($document[0].elementFromPoint(targetX, targetY));
+              dragElement.addClass(sortableConfig.hiddenClass);
               dragElement.removeClass(sortableConfig.hiddenClass);
 
               $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
@@ -528,7 +531,7 @@
            */
           bindDrag = function () {
             if (hasTouch) {
-              if (isLongTouch) {
+              if (scope.sortableScope.options.longTouch) {
                 if (isIOS) {
                   element.bind('touchstart', longTouchStart);
                   element.bind('touchend', longTouchCancel);
@@ -539,8 +542,9 @@
               } else {
                 element.bind('touchstart', dragListen);
               }
+            } else {
+              element.bind('mousedown', dragListen);
             }
-            element.bind('mousedown', dragListen);
           };
 
           /**

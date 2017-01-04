@@ -3,7 +3,7 @@
 
 'use strict';
 
-angular.module('demoApp').service('BoardService', ['$uibModal', 'BoardManipulator', function ($uibModal, BoardManipulator) {
+angular.module('demoApp').service('BoardService', ['$modal', 'BoardManipulator', function ($modal, BoardManipulator) {
 
   return {
     removeCard: function (board, column, card) {
@@ -13,7 +13,7 @@ angular.module('demoApp').service('BoardService', ['$uibModal', 'BoardManipulato
     },
 
     addNewCard: function (board, column) {
-      var modalInstance = $uibModal.open({
+      var modalInstance = $modal.open({
         templateUrl: 'views/partials/newCard.html',
         controller: 'NewCardController',
         backdrop: 'static',
